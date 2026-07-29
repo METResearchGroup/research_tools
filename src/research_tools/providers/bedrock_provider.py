@@ -7,9 +7,9 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from team_llm.aws.bedrock import BedrockClient
-from team_llm.config.model_registry import ModelConfigRegistry
-from team_llm.providers.base import LLMProviderProtocol
+from research_tools.aws.bedrock import BedrockClient
+from research_tools.config.model_registry import ModelConfigRegistry
+from research_tools.providers.base import LLMProviderProtocol
 
 
 class BedrockProvider(LLMProviderProtocol):

@@ -1,5 +1,5 @@
 [project]
-name = "team-llm"
+name = "research_tools"
 version = "0.1.0"
 description = "Internal LiteLLM-based service for structured LLM completions across providers"
 readme = "README.md"

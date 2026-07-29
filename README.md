@@ -1,12 +1,22 @@
-# team-llm
+# research_tools
 
-Internal Python package for structured LLM completions via [LiteLLM](https://github.com/BerriAI/litellm), with provider routing, YAML model configuration, retries, and Pydantic response validation.
+Internal Python package with tooling and functionalities designed to improve research productivity.
+
+## Installation
+
+Clone this repository from GitHub, then install it as a locally editable package with `uv`. Full steps—including using it from another project—are in **[SETUP.md](./SETUP.md)**.
+
+```bash
+git clone https://github.com/your-org/research_tools.git
+cd research_tools
+uv sync --extra test
+```
 
 ## Quick start
 
 ```python
 from pydantic import BaseModel
-from team_llm import LLMService
+from research_tools import LLMService
 
 class LabelResponse(BaseModel):
     label: int
@@ -26,6 +36,7 @@ Set provider API keys in your environment (for example `OPENAI_API_KEY`, `ANTHRO
 
 See [SETUP.md](./SETUP.md) for:
 
-- Creating a standalone GitHub repository from this package
-- Local development setup with `uv`
-- Installing the package in other projects (editable, Git, and wheel)
+- Cloning or downloading the repository
+- Installing as an editable local package (in this repo or from another project)
+- Optional install from GitHub without a local clone
+- Environment variables, usage examples, and model config overrides

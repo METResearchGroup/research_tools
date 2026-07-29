@@ -32,7 +32,7 @@ class ModelConfig:
 
         # Find which provider supports this model
         # Lazy import to allow mocking in tests
-        from team_llm.providers.registry import LLMProviderRegistry
+        from research_tools.providers.registry import LLMProviderRegistry
 
         try:
             provider_instance = LLMProviderRegistry.get_provider(model_identifier)
@@ -198,7 +198,7 @@ class ModelConfigRegistry:
 
         # Verify provider exists for this model
         # Lazy import to allow mocking in tests
-        from team_llm.providers.registry import LLMProviderRegistry
+        from research_tools.providers.registry import LLMProviderRegistry
 
         try:
             LLMProviderRegistry.get_provider(model_identifier)

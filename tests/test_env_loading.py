@@ -1,6 +1,6 @@
 """Environment variable registration for LLM providers."""
 
-from team_llm.env import ENV_VAR_TYPES
+from research_tools.env import ENV_VAR_TYPES
 
 
 def test_anthropic_api_key_registered() -> None:

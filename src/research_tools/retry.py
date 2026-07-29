@@ -18,7 +18,7 @@ try:
 except ImportError:
     litellm_exceptions = None  # type: ignore[assignment]
 
-from team_llm.exceptions import (
+from research_tools.exceptions import (
     ExceptionCategory,
     LLMException,
     LLMTransientError,

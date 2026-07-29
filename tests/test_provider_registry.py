@@ -1,9 +1,9 @@
 """LLM provider registry routing."""
 
-from team_llm.providers.anthropic_provider import AnthropicProvider
-from team_llm.providers.bedrock_provider import BedrockProvider
-from team_llm.providers.openrouter_provider import OpenRouterProvider
-from team_llm.providers.registry import LLMProviderRegistry
+from research_tools.providers.anthropic_provider import AnthropicProvider
+from research_tools.providers.bedrock_provider import BedrockProvider
+from research_tools.providers.openrouter_provider import OpenRouterProvider
+from research_tools.providers.registry import LLMProviderRegistry
 
 
 def test_anthropic_claude_sonnet_resolves_to_anthropic_provider() -> None:

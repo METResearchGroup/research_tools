@@ -2,8 +2,8 @@
 
 import pytest
 
-from team_llm.env import EnvVarsContainer
-from team_llm.providers.anthropic_provider import AnthropicProvider
+from research_tools.env import EnvVarsContainer
+from research_tools.providers.anthropic_provider import AnthropicProvider
 
 
 def test_prepare_completion_kwargs_forwards_response_format_when_present() -> None:

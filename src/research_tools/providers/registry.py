@@ -1,10 +1,10 @@
 """Registry for LLM providers."""
 
-from team_llm.providers.anthropic_provider import AnthropicProvider
-from team_llm.providers.base import LLMProviderProtocol
-from team_llm.providers.bedrock_provider import BedrockProvider
-from team_llm.providers.openai_provider import OpenAIProvider
-from team_llm.providers.openrouter_provider import OpenRouterProvider
+from research_tools.providers.anthropic_provider import AnthropicProvider
+from research_tools.providers.base import LLMProviderProtocol
+from research_tools.providers.bedrock_provider import BedrockProvider
+from research_tools.providers.openai_provider import OpenAIProvider
+from research_tools.providers.openrouter_provider import OpenRouterProvider
 
 
 class LLMProviderRegistry:

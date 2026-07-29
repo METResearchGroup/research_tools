@@ -5,9 +5,9 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from team_llm.config.model_registry import ModelConfigRegistry
-from team_llm.env import EnvVarsContainer
-from team_llm.providers.base import LLMProviderProtocol
+from research_tools.config.model_registry import ModelConfigRegistry
+from research_tools.env import EnvVarsContainer
+from research_tools.providers.base import LLMProviderProtocol
 
 
 class AnthropicProvider(LLMProviderProtocol):

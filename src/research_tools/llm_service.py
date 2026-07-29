@@ -7,13 +7,13 @@ import litellm
 from litellm import batch_completion
 from pydantic import BaseModel
 
-from team_llm.config.model_registry import ModelConfigRegistry
-from team_llm.exceptions import (
+from research_tools.config.model_registry import ModelConfigRegistry
+from research_tools.exceptions import (
     standardize_litellm_exception,
 )
-from team_llm.providers.base import LLMProviderProtocol
-from team_llm.providers.registry import LLMProviderRegistry
-from team_llm.retry import retry_llm_completion
+from research_tools.providers.base import LLMProviderProtocol
+from research_tools.providers.registry import LLMProviderRegistry
+from research_tools.retry import retry_llm_completion
 
 T = TypeVar("T", bound=BaseModel)
 

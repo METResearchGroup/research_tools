@@ -1,35 +1,54 @@
-# team-llm setup and installation
+# Setup guide
 
-This document explains how to publish `team-llm` as its own GitHub repository, develop it locally with `uv`, and install it from other projects.
+This guide is for new users who want to install and use `research_tools` locally.
 
-## What is in this package?
+## What is this package?
 
-`team-llm` is a small internal library that wraps [LiteLLM](https://github.com/BerriAI/litellm) for structured completions:
+`research_tools` is a small library that wraps [LiteLLM](https://github.com/BerriAI/litellm) for structured completions:
 
 - `LLMService` for single and batch structured completions validated with Pydantic
 - Provider routing for OpenAI, Anthropic, OpenRouter, and Amazon Bedrock
-- YAML-backed model configuration (`src/team_llm/config/models.yaml`)
+- YAML-backed model configuration (`src/research_tools/config/models.yaml`)
 - Retry logic with provider-aware rate-limit handling
 - Internal exception types for consistent error handling
 
 Import path:
 
 ```python
-from team_llm import LLMService, get_llm_service
+from research_tools import LLMService, get_llm_service
 ```
 
-## 1. Create a standalone GitHub repository
+## Prerequisites
 
-1. Create a new empty repository in your GitHub organization, for example `your-org/team-llm`.
-2. Copy the contents of `packages/team-llm/` from this monorepo into the new repository root. The new repo should look like:
+- Python 3.12+
+- [uv](https://docs.astral.sh/uv/) (recommended package manager)
+
+Install `uv` if you do not already have it:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+## 1. Download the repository
+
+Clone from GitHub (replace the URL with your org's repository):
+
+```bash
+git clone https://github.com/your-org/research_tools.git
+cd research_tools
+```
+
+Or download a ZIP from the GitHub UI and extract it, then `cd` into the extracted folder.
+
+After download, the tree should look like:
 
 ```text
-team-llm/
+research_tools/
 ├── pyproject.toml
 ├── README.md
 ├── SETUP.md
 ├── src/
-│   └── team_llm/
+│   └── research_tools/
 │       ├── __init__.py
 │       ├── llm_service.py
 │       ├── exceptions.py
@@ -41,48 +60,88 @@ team-llm/
 └── tests/
 ```
 
-3. Commit and push:
+## 2. Install as a locally editable package
+
+### Develop inside this repository
+
+From the repository root:
 
 ```bash
-git init
-git add .
-git commit -m "Initial import of team-llm package"
-git branch -M main
-git remote add origin git@github.com:your-org/team-llm.git
-git push -u origin main
-```
-
-4. Tag releases when you want consumers to pin versions:
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-## 2. Local development setup (uv)
-
-From the package root:
-
-```bash
-cd team-llm
 uv sync --extra test
 ```
 
-Run the package tests:
+That creates a virtual environment and installs `research_tools` in editable mode along with test dependencies.
+
+Run the tests:
 
 ```bash
 uv run pytest
 ```
 
-Build a wheel locally:
+Build a wheel locally (optional):
 
 ```bash
 uv build
 ```
 
-The built artifacts appear in `dist/`.
+Built artifacts appear in `dist/`.
 
-### Environment variables
+### Use from another project (editable path install)
+
+If you want a separate project to import `research_tools` while still editing this checkout live, add it as an editable path dependency.
+
+In the consuming project's `pyproject.toml`:
+
+```toml
+[project]
+dependencies = [
+    "research_tools",
+]
+
+[tool.uv.sources]
+research_tools = { path = "../research_tools", editable = true }
+```
+
+Adjust the `path` so it points at this repository root (the folder that contains `pyproject.toml`). Then:
+
+```bash
+uv sync
+```
+
+Alternatively, from the consuming project:
+
+```bash
+uv add --editable /absolute/or/relative/path/to/research_tools
+```
+
+### Install from GitHub without a local clone
+
+If you only need to consume the package and do not need local edits, pin it from Git in the consuming project's `pyproject.toml`:
+
+```toml
+[project]
+dependencies = [
+    "research_tools",
+]
+
+[tool.uv.sources]
+research_tools = { git = "https://github.com/your-org/research_tools.git", branch = "main" }
+```
+
+Or pin a release tag:
+
+```toml
+[tool.uv.sources]
+research_tools = { git = "https://github.com/your-org/research_tools.git", tag = "v0.1.0" }
+```
+
+Then:
+
+```bash
+uv sync
+```
+
+## 3. Environment variables
 
 Providers read credentials from the environment (or a `.env` file loaded by `python-dotenv`):
 
@@ -93,74 +152,11 @@ Providers read credentials from the environment (or a `.env` file loaded by `pyt
 | `OPENROUTER_API_KEY` | OpenRouter models |
 | `AWS_PROFILE` / default AWS credential chain | Bedrock models |
 
-## 3. Install in another project
-
-All examples below assume the consuming project also uses `uv` and `pyproject.toml`.
-
-### Option A: Editable install from a local path (monorepo or sibling checkout)
-
-In the consuming project's `pyproject.toml`:
-
-```toml
-[project]
-dependencies = [
-    "team-llm",
-]
-
-[tool.uv.sources]
-team-llm = { path = "../team-llm", editable = true }
-```
-
-Then sync:
-
-```bash
-uv sync
-```
-
-This is how `moral-outrage-classifier` consumes the package while it still lives under `packages/team-llm/`.
-
-### Option B: Install directly from GitHub
-
-Pin to a branch:
-
-```toml
-[project]
-dependencies = [
-    "team-llm",
-]
-
-[tool.uv.sources]
-team-llm = { git = "https://github.com/your-org/team-llm.git", branch = "main" }
-```
-
-Or pin to a release tag:
-
-```toml
-[tool.uv.sources]
-team-llm = { git = "https://github.com/your-org/team-llm.git", tag = "v0.1.0" }
-```
-
-Then:
-
-```bash
-uv sync
-```
-
-### Option C: Install from a built wheel
-
-After `uv build`, publish the wheel to your internal package index or attach it to a GitHub Release. Consumers can install with:
-
-```bash
-uv add ./dist/team_llm-0.1.0-py3-none-any.whl
-```
-
-or reference the hosted wheel URL in `[tool.uv.sources]`.
-
-## 4. Basic usage after installation
+## 4. Basic usage
 
 ```python
 from pydantic import BaseModel
-from team_llm import LLMService
+from research_tools import LLMService
 
 class LabelResponse(BaseModel):
     label: int
@@ -186,23 +182,19 @@ results = service.structured_batch_completion(
 
 ## 5. Customizing model configuration
 
-Default model settings live in `src/team_llm/config/models.yaml`. To override the config path at runtime (for tests or deployment-specific configs):
+Default model settings live in `src/research_tools/config/models.yaml`. To override the config path at runtime (for tests or deployment-specific configs):
 
 ```python
 from pathlib import Path
-from team_llm.config.model_registry import ModelConfigRegistry
+from research_tools.config.model_registry import ModelConfigRegistry
 
 ModelConfigRegistry.set_config_path(Path("/path/to/custom-models.yaml"))
 ```
 
-## 6. Backward compatibility in this monorepo
-
-While `team-llm` is vendored under `packages/team-llm/`, the original import paths under `models.llm` remain as thin re-exports. New code should import from `team_llm` directly.
-
-## 7. Releasing a new version
+## 6. Releasing a new version
 
 1. Bump `version` in `pyproject.toml`.
 2. Run `uv run pytest`.
 3. Run `uv build`.
 4. Commit, tag (`v0.1.1`), and push the tag.
-5. Update consuming projects to the new tag or republish the wheel.
+5. Update consuming projects to the new tag, or republish the wheel.
