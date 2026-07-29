@@ -30,7 +30,7 @@ result = service.structured_completion(
 print(result.label)
 ```
 
-Set provider API keys in your environment (for example `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`). Bedrock models use AWS credentials instead of an API key.
+Set provider API keys in your environment (for example `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`). Optionally pass the same keys per call via `env={...}` on structured completion APIs; see [SETUP.md](./SETUP.md) for details. Bedrock models use AWS credentials instead of an API key.
 
 ## Documentation
 
