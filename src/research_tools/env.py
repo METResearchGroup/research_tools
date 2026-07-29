@@ -15,6 +15,66 @@ ENV_VAR_TYPES: Final[dict[str, type[str]]] = {
     "OPENROUTER_API_KEY": str,
 }
 
+PROVIDER_API_KEY_ENV_VARS: Final[dict[str, str]] = {
+    "openai": "OPENAI_API_KEY",
+    "anthropic": "ANTHROPIC_API_KEY",
+    "openrouter": "OPENROUTER_API_KEY",
+}
+
+
+def validate_env_overrides(env: dict[str, str] | None) -> dict[str, str]:
+    """Return a copy of env, or {}. Raise ValueError if any key is not in ENV_VAR_TYPES."""
+    if env is None:
+        return {}
+    illegal = [key for key in env if key not in ENV_VAR_TYPES]
+    if illegal:
+        raise ValueError(
+            f"Unknown env override key(s): {', '.join(sorted(illegal))}. "
+            f"Allowed keys: {', '.join(sorted(ENV_VAR_TYPES))}."
+        )
+    return dict(env)
+
+
+def resolve_api_key_for_provider(
+    provider_name: str,
+    env_overrides: dict[str, str] | None = None,
+    *,
+    required: bool = True,
+) -> str | None:
+    """
+    Resolve API key for provider_name.
+
+    - bedrock: always return None (ignore overrides for API-key purposes).
+    - unknown provider_name: raise ValueError.
+    - if overrides contain the mapped key: use that value
+      (empty/whitespace → ValueError when required).
+    - else: EnvVarsContainer.get_env_var(mapped_key, required=required);
+      return None when not required and missing.
+    """
+    if provider_name == "bedrock":
+        return None
+
+    mapped_key = PROVIDER_API_KEY_ENV_VARS.get(provider_name)
+    if mapped_key is None:
+        raise ValueError(f"Unknown provider_name: {provider_name!r}")
+
+    overrides = validate_env_overrides(env_overrides)
+    if mapped_key in overrides:
+        value = overrides[mapped_key]
+        if not value.strip():
+            if required:
+                raise ValueError(
+                    f"{mapped_key} is required but is empty. "
+                    f"Please set the {mapped_key} environment variable to a non-empty value."
+                )
+            return None
+        return value
+
+    raw = EnvVarsContainer.get_env_var(mapped_key, required=required)
+    if not required and (raw is None or not str(raw).strip()):
+        return None
+    return str(raw)
+
 
 class EnvVarsContainer:
     """Thread-safe singleton container for environment variables."""

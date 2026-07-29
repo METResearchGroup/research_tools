@@ -8,6 +8,7 @@ from litellm import batch_completion
 from pydantic import BaseModel
 
 from research_tools.config.model_registry import ModelConfigRegistry
+from research_tools.env import resolve_api_key_for_provider, validate_env_overrides
 from research_tools.exceptions import (
     standardize_litellm_exception,
 )
@@ -121,6 +122,7 @@ class LLMService:
         model: str,
         provider: LLMProviderProtocol,
         response_format: type[BaseModel] | None = None,
+        api_key_override: str | None = None,
         **kwargs,
     ) -> Any:
         """
@@ -134,6 +136,9 @@ class LLMService:
             model: Model identifier to use
             provider: Provider instance for this model
             response_format: Pydantic model class for structured outputs
+            api_key_override: Per-call API key resolved from env overrides; when set,
+                used instead of ``provider.api_key``. ``None`` means no API key
+                (e.g. Bedrock).
             **kwargs: Additional parameters to pass to the API (temperature, max_tokens, etc.)
                 These override any default kwargs from the model configuration.
 
@@ -150,11 +155,9 @@ class LLMService:
             **kwargs,
         )
         completion_kwargs["messages"] = messages
-        # Avoid global LiteLLM state; use the provider instance's key per request
-        # when that provider authenticates with an API key.
-        api_key = provider.api_key
-        if api_key is not None:
-            completion_kwargs["api_key"] = api_key
+        # Avoid global LiteLLM state; inject the resolved key for this request only.
+        if api_key_override is not None:
+            completion_kwargs["api_key"] = api_key_override
 
         try:
             result = litellm.completion(**completion_kwargs)  # type: ignore
@@ -171,6 +174,7 @@ class LLMService:
         model: str,
         provider: LLMProviderProtocol,
         response_format: type[BaseModel] | None = None,
+        api_key_override: str | None = None,
         **kwargs,
     ) -> list[Any]:
         """
@@ -185,6 +189,9 @@ class LLMService:
             model: Model identifier to use
             provider: Provider instance for this model
             response_format: Pydantic model class for structured outputs
+            api_key_override: Per-call API key resolved from env overrides; when set,
+                used instead of ``provider.api_key``. ``None`` means no API key
+                (e.g. Bedrock).
             **kwargs: Additional parameters to pass to the API (temperature, max_tokens, etc.)
                 These override any default kwargs from the model configuration.
 
@@ -206,11 +213,9 @@ class LLMService:
         # Remove placeholder messages from kwargs since batch_completion takes it separately
         completion_kwargs.pop("messages", None)
         completion_kwargs["messages"] = messages_list
-        # Avoid global LiteLLM state; use the provider instance's key per request
-        # when that provider authenticates with an API key.
-        api_key = provider.api_key
-        if api_key is not None:
-            completion_kwargs["api_key"] = api_key
+        # Avoid global LiteLLM state; inject the resolved key for this request only.
+        if api_key_override is not None:
+            completion_kwargs["api_key"] = api_key_override
 
         try:
             results: list[Any] = batch_completion(**completion_kwargs)  # type: ignore
@@ -228,6 +233,7 @@ class LLMService:
         model: str,
         provider: LLMProviderProtocol,
         response_format: type[T],
+        api_key_override: str | None = None,
         **kwargs,
     ) -> T:
         """Execute chat completion and validate/parse the response.
@@ -242,6 +248,7 @@ class LLMService:
             model: Model identifier to use
             provider: Provider instance for this model
             response_format: Pydantic model class for structured outputs (required)
+            api_key_override: Per-call API key to re-apply on retries
             **kwargs: Additional parameters to pass to the API
 
         Returns:
@@ -261,6 +268,7 @@ class LLMService:
             model=model,
             provider=provider,
             response_format=response_format,
+            api_key_override=api_key_override,
             **kwargs,
         )
 
@@ -274,6 +282,7 @@ class LLMService:
         model: str,
         provider: LLMProviderProtocol,
         response_format: type[T],
+        api_key_override: str | None = None,
         **kwargs,
     ) -> list[T]:
         """Execute batch completion and validate/parse all responses.
@@ -288,6 +297,7 @@ class LLMService:
             model: Model identifier to use
             provider: Provider instance for this model
             response_format: Pydantic model class for structured outputs (required)
+            api_key_override: Per-call API key to re-apply on retries
             **kwargs: Additional parameters to pass to the API
 
         Returns:
@@ -307,6 +317,7 @@ class LLMService:
             model=model,
             provider=provider,
             response_format=response_format,
+            api_key_override=api_key_override,
             **kwargs,
         )
 
@@ -318,6 +329,7 @@ class LLMService:
         messages: list[dict],
         response_model: type[T],
         model: str | None = None,
+        env: dict[str, str] | None = None,
         **kwargs,
     ) -> T:
         """
@@ -331,6 +343,9 @@ class LLMService:
             messages: List of message dicts with 'role' and 'content' keys
             response_model: Pydantic model class to parse the response into
             model: Model to use (default: ``ModelConfigRegistry.get_default_model()`` from models.yaml)
+            env: Optional per-call API-key overrides (``OPENAI_API_KEY``,
+                ``ANTHROPIC_API_KEY``, ``OPENROUTER_API_KEY``). Dict values override
+                process env for this request only. Unknown keys raise ``ValueError``.
             **kwargs: Additional parameters to pass to the API (temperature, max_tokens, etc.)
                 These override any default kwargs from the model configuration.
 
@@ -343,6 +358,8 @@ class LLMService:
             ValidationError: If the response cannot be parsed into the Pydantic model
                 (after all retries)
         """
+        env_overrides = validate_env_overrides(env)
+
         # Step 1: Determine model (use default from config if not provided)
         if model is None:
             model = ModelConfigRegistry.get_default_model()
@@ -350,12 +367,19 @@ class LLMService:
         # Step 2: Get provider for this model
         provider = self._get_provider_for_model(model)
 
-        # Step 3: Execute with retry and validation
+        # Step 3: Resolve API key for this request only (do not mutate provider state)
+        api_key_override = resolve_api_key_for_provider(
+            provider.provider_name,
+            env_overrides,
+        )
+
+        # Step 4: Execute with retry and validation
         return self._complete_and_validate_structured(
             messages=messages,
             model=model,
             provider=provider,
             response_format=response_model,
+            api_key_override=api_key_override,
             **kwargs,
         )
 
@@ -416,6 +440,7 @@ class LLMService:
         response_model: type[T],
         model: str | None = None,
         role: str = "user",
+        env: dict[str, str] | None = None,
         **kwargs,
     ) -> list[T]:
         """
@@ -431,6 +456,9 @@ class LLMService:
             response_model: Pydantic model class to parse each response into
             model: Model to use (default: ``ModelConfigRegistry.get_default_model()`` from models.yaml)
             role: Message role for all prompts (default: 'user')
+            env: Optional per-call API-key overrides (``OPENAI_API_KEY``,
+                ``ANTHROPIC_API_KEY``, ``OPENROUTER_API_KEY``). Dict values override
+                process env for this request only. Unknown keys raise ``ValueError``.
             **kwargs: Additional parameters to pass to the API (temperature, max_tokens, etc.)
                 These override any default kwargs from the model configuration.
 
@@ -442,6 +470,8 @@ class LLMService:
                 content is missing or invalid (after all retries)
             ValidationError: If any response cannot be parsed into the Pydantic model
         """
+        env_overrides = validate_env_overrides(env)
+
         # Step 1: Determine model
         if model is None:
             model = ModelConfigRegistry.get_default_model()
@@ -449,15 +479,22 @@ class LLMService:
         # Step 2: Get provider for this model
         provider = self._get_provider_for_model(model)
 
-        # Step 3: Convert prompts to message lists
+        # Step 3: Resolve API key for this request only (do not mutate provider state)
+        api_key_override = resolve_api_key_for_provider(
+            provider.provider_name,
+            env_overrides,
+        )
+
+        # Step 4: Convert prompts to message lists
         messages_list = [[{"role": role, "content": prompt}] for prompt in prompts]
 
-        # Step 4: Execute with retry and validation
+        # Step 5: Execute with retry and validation
         return self._complete_and_validate_structured_batch(
             messages_list=messages_list,
             model=model,
             provider=provider,
             response_format=response_model,
+            api_key_override=api_key_override,
             **kwargs,
         )
 

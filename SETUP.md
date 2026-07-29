@@ -152,6 +152,8 @@ Providers read credentials from the environment (or a `.env` file loaded by `pyt
 | `OPENROUTER_API_KEY` | OpenRouter models |
 | `AWS_PROFILE` / default AWS credential chain | Bedrock models |
 
+The same three API-key names (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`) may also be passed per call via `env={...}` on `structured_completion` / `structured_batch_completion`. Dict values override process env for that call only; unknown keys are rejected. Bedrock still uses the AWS credential chain (not these API-key vars).
+
 ## 4. Basic usage
 
 ```python
@@ -168,6 +170,17 @@ result = service.structured_completion(
     model="gpt-5.4-nano",
 )
 print(result.label)
+```
+
+Per-call API key override (process env remains the fallback when a key is omitted):
+
+```python
+result = service.structured_completion(
+    messages=[{"role": "user", "content": "Return a label for this text."}],
+    response_model=LabelResponse,
+    model="gpt-5.4-nano",
+    env={"OPENAI_API_KEY": "..."},
+)
 ```
 
 Batch API:
