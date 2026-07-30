@@ -67,16 +67,30 @@ research_tools/
 From the repository root:
 
 ```bash
-uv sync --extra test
+uv sync --extra test --extra dev
 ```
 
-That creates a virtual environment and installs `research_tools` in editable mode along with test dependencies.
+That creates a virtual environment and installs `research_tools` in editable mode along with test and developer quality tools (Ruff, Pyright, Lizard, codespell, pre-commit).
 
 Run the tests:
 
 ```bash
 uv run pytest
 ```
+
+Install git hooks so lint, format, types, complexity, and spelling checks run on each commit:
+
+```bash
+uv run pre-commit install
+```
+
+Optionally run the full suite against every file:
+
+```bash
+uv run pre-commit run --all-files
+```
+
+Pull requests and pushes to `main` run the same pre-commit suite, pytest, and `uv audit` in GitHub Actions.
 
 Build a wheel locally (optional):
 

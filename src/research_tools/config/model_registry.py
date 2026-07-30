@@ -100,14 +100,14 @@ class ModelConfig:
 
         Raises:
             KeyError: If any key in the path does not exist.
-            ValueError: If config cannot be traversed (parent is not a dict).
+            TypeError: If config cannot be traversed (parent is not a dict).
         """
         value = self._config_data
         path_so_far: list[str] = []
         for key in keys:
             path_so_far.append(key)
             if not isinstance(value, dict):
-                raise ValueError(
+                raise TypeError(
                     f"Cannot traverse key '{key}' - parent is not a dictionary. "
                     f"Path so far: {' -> '.join(path_so_far)}"
                 )

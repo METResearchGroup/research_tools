@@ -23,7 +23,9 @@ def _mock_structured_response(label: int = 1) -> Any:
     return SimpleNamespace(
         choices=[
             SimpleNamespace(
-                message=SimpleNamespace(content=LabelResponse(label=label).model_dump_json())
+                message=SimpleNamespace(
+                    content=LabelResponse(label=label).model_dump_json()
+                )
             )
         ]
     )
@@ -69,7 +71,9 @@ def test_structured_completion_uses_dict_api_key_over_process_env(
         captured.update(kwargs)
         return _mock_structured_response()
 
-    monkeypatch.setattr("research_tools.llm_service.litellm.completion", fake_completion)
+    monkeypatch.setattr(
+        "research_tools.llm_service.litellm.completion", fake_completion
+    )
 
     service = LLMService()
     result = service.structured_completion(
@@ -93,7 +97,9 @@ def test_structured_completion_uses_process_env_when_env_none(
         captured.update(kwargs)
         return _mock_structured_response()
 
-    monkeypatch.setattr("research_tools.llm_service.litellm.completion", fake_completion)
+    monkeypatch.setattr(
+        "research_tools.llm_service.litellm.completion", fake_completion
+    )
 
     service = LLMService()
     result = service.structured_completion(
@@ -117,7 +123,9 @@ def test_sequential_calls_do_not_poison_shared_provider(
         api_keys.append(kwargs["api_key"])
         return _mock_structured_response()
 
-    monkeypatch.setattr("research_tools.llm_service.litellm.completion", fake_completion)
+    monkeypatch.setattr(
+        "research_tools.llm_service.litellm.completion", fake_completion
+    )
 
     service = LLMService()
     service.structured_completion(
@@ -147,7 +155,9 @@ def test_structured_completion_rejects_unknown_env_key_before_litellm(
         called = True
         return _mock_structured_response()
 
-    monkeypatch.setattr("research_tools.llm_service.litellm.completion", fake_completion)
+    monkeypatch.setattr(
+        "research_tools.llm_service.litellm.completion", fake_completion
+    )
 
     service = LLMService()
     with pytest.raises(ValueError, match="BOGUS"):
@@ -171,7 +181,9 @@ def test_wrong_provider_key_in_env_falls_back_to_process_env(
         captured.update(kwargs)
         return _mock_structured_response()
 
-    monkeypatch.setattr("research_tools.llm_service.litellm.completion", fake_completion)
+    monkeypatch.setattr(
+        "research_tools.llm_service.litellm.completion", fake_completion
+    )
 
     service = LLMService()
     result = service.structured_completion(

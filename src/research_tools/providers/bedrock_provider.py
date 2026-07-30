@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import BaseModel
 
@@ -15,7 +15,7 @@ from research_tools.providers.base import LLMProviderProtocol
 class BedrockProvider(LLMProviderProtocol):
     """Amazon Bedrock provider for LiteLLM-routed foundation models."""
 
-    MODEL_ID_MAP = {
+    MODEL_ID_MAP: ClassVar[dict[str, str]] = {
         "qwen/qwen3.6-plus": "bedrock/qwen.qwen3-32b-v1:0",
     }
 

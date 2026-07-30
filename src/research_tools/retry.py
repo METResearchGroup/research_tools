@@ -66,7 +66,11 @@ def _model_from_retry_state(retry_state: RetryCallState) -> str | None:
     if len(args) >= 3:
         candidate = args[2]
         return candidate if isinstance(candidate, str) else None
-    return retry_state.kwargs.get("model") if isinstance(retry_state.kwargs, dict) else None
+    return (
+        retry_state.kwargs.get("model")
+        if isinstance(retry_state.kwargs, dict)
+        else None
+    )
 
 
 def _is_anthropic_litellm_rate_limit(

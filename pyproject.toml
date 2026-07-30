@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "boto3>=1.42.96",
-    "litellm==1.81.0",
+    "litellm==1.84.0",
     "pydantic>=2.12.5",
     "python-dotenv>=1.2.2",
     "pyyaml>=6.0.2",
@@ -16,6 +16,13 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     "pytest>=9.0.2",
+]
+dev = [
+    "codespell>=2.4.1",
+    "lizard>=1.18.0",
+    "pre-commit>=4.2.0",
+    "pyright>=1.1.400",
+    "ruff>=0.12.0",
 ]
 
 [build-system]

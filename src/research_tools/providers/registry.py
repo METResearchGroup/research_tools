@@ -1,5 +1,7 @@
 """Registry for LLM providers."""
 
+from typing import ClassVar
+
 from research_tools.providers.anthropic_provider import AnthropicProvider
 from research_tools.providers.base import LLMProviderProtocol
 from research_tools.providers.bedrock_provider import BedrockProvider
@@ -10,8 +12,8 @@ from research_tools.providers.openrouter_provider import OpenRouterProvider
 class LLMProviderRegistry:
     """Registry for LLM providers."""
 
-    _providers: dict[str, type[LLMProviderProtocol]] = {}
-    _instances: dict[str, LLMProviderProtocol] = {}
+    _providers: ClassVar[dict[str, type[LLMProviderProtocol]]] = {}
+    _instances: ClassVar[dict[str, LLMProviderProtocol]] = {}
 
     @classmethod
     def register(cls, provider_class: type[LLMProviderProtocol]) -> None:
@@ -34,7 +36,7 @@ class LLMProviderRegistry:
         Raises:
             ValueError: If no provider supports the given model
         """
-        for _, provider_instance in cls._instances.items():
+        for provider_instance in cls._instances.values():
             # assumes only one provider supports a given model
             # (which makes sense).
             if provider_instance.supports_model(model):
