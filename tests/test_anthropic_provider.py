@@ -26,7 +26,9 @@ def test_prepare_completion_kwargs_forwards_response_format_when_present() -> No
     assert out["response_format"] == response_format
 
 
-def test_initialize_without_api_key_requires_anthropic_env(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_initialize_without_api_key_requires_anthropic_env(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     def fake_get_env_var(cls, name: str, required: bool = False) -> str:
         if name == "ANTHROPIC_API_KEY" and required:
             raise ValueError(

@@ -7,7 +7,6 @@ import pytest
 
 from research_tools.prompting.prompt_builder import build_prompt_with_stimuli
 
-
 # Pseudocode (Phase 3):
 # given system_prompt="You are a rater." and stimuli=[{"id": 1}, {"id": 2}]
 # when build_prompt_with_stimuli(system_prompt, stimuli)
@@ -33,9 +32,7 @@ def test_builds_numbered_json_stimuli_after_system_prompt() -> None:
     result = build_prompt_with_stimuli(system_prompt, stimuli)
 
     expected = (
-        "You are a rater.\n"
-        f"1. {json.dumps(stimuli[0])}\n"
-        f"2. {json.dumps(stimuli[1])}"
+        f"You are a rater.\n1. {json.dumps(stimuli[0])}\n2. {json.dumps(stimuli[1])}"
     )
     assert result == expected
 
@@ -82,9 +79,5 @@ def test_shuffle_reorders_without_mutating_caller_list(
 
 def test_accepts_tuple_stimuli() -> None:
     result = build_prompt_with_stimuli("S", ({"a": 1}, {"b": 2}))
-    expected = (
-        "S\n"
-        f"1. {json.dumps({'a': 1})}\n"
-        f"2. {json.dumps({'b': 2})}"
-    )
+    expected = f"S\n1. {json.dumps({'a': 1})}\n2. {json.dumps({'b': 2})}"
     assert result == expected
