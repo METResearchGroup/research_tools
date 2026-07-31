@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2026-07-31
+
+1. Added a filesystem-backed LLM item runner (`run`) that writes run metadata and per-item JSON results, plus a keep/remove recipe showing the call-site pattern. [PR #4](https://github.com/METResearchGroup/research_tools/pull/4)
+
 ## 2026-07-29
 
 1. Local commits and PRs now share pre-commit gates (Ruff, Pyright, Lizard, codespell, file hygiene) plus CI pytest and `uv audit`, with LiteLLM bumped to clear known advisories. [PR #3](https://github.com/METResearchGroup/research_tools/pull/3)
